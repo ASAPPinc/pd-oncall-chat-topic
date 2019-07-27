@@ -1,5 +1,5 @@
-STACKNAME_BASE=pagerduty-oncall-chat-topic
-REGION="ca-central-1"
+STACKNAME_BASE=asapp-pagerduty-oncall-chat-topic
+REGION="us-east-1"
 # Bucket in REGION that is used for deployment (`pd-oncall-chat-topic` is already used)
 BUCKET=$(STACKNAME_BASE)
 SSMKeyArn=$(shell aws kms --region $(REGION) describe-key --key-id alias/aws/ssm --query KeyMetadata.Arn)
@@ -7,6 +7,8 @@ MD5=$(shell md5sum lambda/*.py | md5sum | cut -d ' ' -f 1)
 
 
 deploy:
+	-aws s3 mb \
+	  s3://$(STACKNAME_BASE)
 	cd lambda && \
 		zip -r9 /tmp/deployment.zip *.py && \
 		aws s3 cp --region $(REGION) /tmp/deployment.zip \
@@ -34,3 +36,5 @@ put-pd-key:
 	./scripts/put-ssm.sh $(STACKNAME_BASE) $(STACKNAME_BASE) $(REGION)
 put-slack-key:
 	./scripts/put-ssm.sh $(STACKNAME_BASE)-slack $(STACKNAME_BASE) $(REGION)
+put-config:
+	./scripts/put-config.sh
